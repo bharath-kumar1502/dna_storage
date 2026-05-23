@@ -1,0 +1,2961 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SYNTH STORAGE // DNA Data Storage Simulator</title>
+  
+  <!-- Google Fonts: Syne for Headings, DM Sans for Body -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Syne:wght@500;700;800&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap" rel="stylesheet">
+  
+  <style>
+    /* CSS DESIGN SYSTEM - SCIENTIFIC LABORATORY AESTHETIC */
+    :root {
+      /* Theme colors (White/Blue lab style) */
+      --bg-lab: #f1f5f9;
+      --bg-body: #f8fafc;
+      --panel-bg: #ffffff;
+      --border-lab: #cbd5e1;
+      --border-lab-focus: #3b82f6;
+      --grid-color: rgba(37, 99, 235, 0.04);
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #94a3b8;
+      
+      /* Primary Brand */
+      --primary: #2563eb;
+      --primary-light: #eff6ff;
+      --primary-dark: #1d4ed8;
+      --primary-glow: rgba(37, 99, 235, 0.15);
+      
+      /* Base Pair Colors (Scientific Legend) */
+      --color-a: #2563eb;       /* Adenine - Blue */
+      --color-t: #06b6d4;       /* Thymine - Cyan */
+      --color-c: #4f46e5;       /* Cytosine - Indigo */
+      --color-g: #0d9488;       /* Guanine - Teal */
+      
+      --color-a-light: #dbeafe;
+      --color-t-light: #ecfeff;
+      --color-c-light: #e0e7ff;
+      --color-g-light: #ccfbf1;
+
+      /* UI States */
+      --success: #10b981;
+      --success-light: #ecfdf5;
+      --error: #ef4444;
+      --error-light: #fef2f2;
+      --warning: #f59e0b;
+      --warning-light: #fefbeb;
+      
+      /* Fonts */
+      --font-heading: 'Syne', sans-serif;
+      --font-body: 'DM Sans', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      
+      /* Shadows */
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+      --shadow-glow: 0 0 15px rgba(37, 99, 235, 0.15);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border-lab) transparent;
+    }
+
+    /* Scrollbars for webkit */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--border-lab);
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--text-muted);
+    }
+
+    body {
+      background-color: var(--bg-body);
+      color: var(--text-primary);
+      font-family: var(--font-body);
+      line-height: 1.5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Grid pattern background layer */
+    body::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image: 
+        linear-gradient(to right, var(--grid-color) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--grid-color) 1px, transparent 1px);
+      background-size: 24px 24px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* LAB HEADER */
+    .lab-header {
+      background-color: var(--panel-bg);
+      border-bottom: 2px solid var(--border-lab);
+      padding: 16px 24px;
+      position: relative;
+      z-index: 10;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .header-logo-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .lab-logo {
+      color: var(--primary);
+      animation: spin-slow 15s linear infinite;
+    }
+
+    .header-title-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header-title {
+      font-family: var(--font-heading);
+      font-size: 1.3rem;
+      font-weight: 800;
+      letter-spacing: 1px;
+      color: var(--text-primary);
+      text-transform: uppercase;
+    }
+
+    .header-subtitle {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      letter-spacing: 0.5px;
+    }
+
+    .header-status-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--primary-light);
+      border: 1px solid rgba(37, 99, 235, 0.15);
+      border-radius: 4px;
+      padding: 6px 12px;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--primary);
+      font-weight: 700;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: var(--success);
+      box-shadow: 0 0 8px var(--success);
+      animation: pulse-glow 1.5s infinite ease-in-out;
+    }
+
+    /* STICKY TOP NAVBAR */
+    .lab-navbar-wrapper {
+      position: sticky;
+      top: 0;
+      z-index: 99;
+      background-color: rgba(248, 250, 252, 0.8);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--border-lab);
+      padding: 8px 24px;
+    }
+
+    .lab-navbar {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 2px;
+    }
+
+    .nav-tab {
+      background: var(--panel-bg);
+      border: 1px solid var(--border-lab);
+      border-radius: 6px;
+      padding: 10px 18px;
+      font-family: var(--font-heading);
+      font-weight: 700;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .nav-tab-num {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      opacity: 0.5;
+    }
+
+    .nav-tab:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+      transform: translateY(-1px);
+    }
+
+    .nav-tab.active {
+      background-color: var(--primary);
+      border-color: var(--primary);
+      color: #ffffff;
+      box-shadow: var(--shadow-glow);
+    }
+
+    .nav-tab.active .nav-tab-num {
+      opacity: 0.8;
+    }
+
+    /* MAIN CONTAINER */
+    .lab-container {
+      flex: 1;
+      max-width: 1200px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 24px;
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    /* SCIENTIFIC LAB CARDS */
+    .lab-card {
+      background: var(--panel-bg);
+      border: 1px solid var(--border-lab);
+      border-radius: 8px;
+      position: relative;
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+    }
+
+    /* Dynamic Grid background on cards */
+    .lab-card::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image: 
+        linear-gradient(to right, rgba(37, 99, 235, 0.015) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(37, 99, 235, 0.015) 1px, transparent 1px);
+      background-size: 16px 16px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .lab-card-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border-lab);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: linear-gradient(180deg, var(--bg-body) 0%, rgba(241, 245, 249, 0.4) 100%);
+      z-index: 2;
+    }
+
+    .lab-card-title {
+      font-family: var(--font-heading);
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .lab-card-body {
+      padding: 20px;
+      position: relative;
+      z-index: 2;
+    }
+
+    /* LAB DECORATIVE CORNERS */
+    .lab-corner {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      border: 2px solid var(--primary);
+      pointer-events: none;
+      z-index: 3;
+    }
+    .corner-tl { top: 6px; left: 6px; border-right: none; border-bottom: none; }
+    .corner-tr { top: 6px; right: 6px; border-left: none; border-bottom: none; }
+    .corner-bl { bottom: 6px; left: 6px; border-right: none; border-top: none; }
+    .corner-br { bottom: 6px; right: 6px; border-left: none; border-top: none; }
+
+    /* VIEW SECTIONS Switcher */
+    .view-section {
+      display: none;
+      animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+
+    .view-section.active {
+      display: block;
+    }
+
+    /* INPUTS & TEXTAREAS */
+    .lab-label {
+      display: block;
+      font-family: var(--font-heading);
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+      color: var(--text-secondary);
+    }
+
+    .lab-textarea {
+      width: 100%;
+      height: 120px;
+      background-color: var(--bg-body);
+      border: 1px solid var(--border-lab);
+      border-radius: 6px;
+      padding: 12px;
+      font-family: var(--font-body);
+      font-size: 0.95rem;
+      color: var(--text-primary);
+      resize: vertical;
+      transition: all 0.2s ease;
+    }
+
+    .lab-textarea:focus {
+      outline: none;
+      border-color: var(--border-lab-focus);
+      background-color: var(--panel-bg);
+      box-shadow: 0 0 0 3px var(--primary-glow);
+    }
+
+    .lab-textarea.mono {
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      letter-spacing: 0.5px;
+    }
+
+    .input-counter-group {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 6px;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    /* BUTTONS */
+    .lab-btn-group {
+      display: flex;
+      gap: 12px;
+      margin-top: 16px;
+      flex-wrap: wrap;
+    }
+
+    .lab-btn {
+      background-color: var(--primary);
+      color: #ffffff;
+      border: 1px solid var(--primary);
+      border-radius: 6px;
+      padding: 10px 20px;
+      font-family: var(--font-heading);
+      font-weight: 700;
+      font-size: 0.85rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .lab-btn:hover {
+      background-color: var(--primary-dark);
+      border-color: var(--primary-dark);
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-glow);
+    }
+
+    .lab-btn:active {
+      transform: translateY(0);
+    }
+
+    .lab-btn.secondary {
+      background-color: var(--panel-bg);
+      color: var(--text-secondary);
+      border: 1px solid var(--border-lab);
+    }
+
+    .lab-btn.secondary:hover {
+      background-color: var(--primary-light);
+      border-color: var(--primary);
+      color: var(--primary);
+      box-shadow: none;
+    }
+
+    .lab-btn.danger {
+      background-color: #ffffff;
+      color: var(--error);
+      border-color: var(--border-lab);
+    }
+
+    .lab-btn.danger:hover {
+      background-color: var(--error-light);
+      border-color: var(--error);
+      color: var(--error);
+      box-shadow: none;
+    }
+
+    .lab-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+
+    /* GRID LAYOUTS FOR COLUMNS */
+    .panel-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 24px;
+    }
+
+    @media (min-width: 768px) {
+      .panel-grid {
+        grid-template-columns: 1.1fr 0.9fr;
+      }
+    }
+
+    /* OUTPUT READOUT PANELS */
+    .readout-panel {
+      border: 1px solid var(--border-lab);
+      background-color: var(--bg-body);
+      border-radius: 6px;
+      padding: 16px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      height: 100%;
+      min-height: 200px;
+    }
+
+    .readout-panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px dashed var(--border-lab);
+      padding-bottom: 8px;
+    }
+
+    .readout-panel-title {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--text-secondary);
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .copy-btn {
+      background: var(--panel-bg);
+      border: 1px solid var(--border-lab);
+      border-radius: 4px;
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--text-secondary);
+      transition: all 0.15s ease;
+    }
+
+    .copy-btn:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+      background: var(--primary-light);
+    }
+
+    .readout-content {
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      word-break: break-all;
+      overflow-y: auto;
+      flex: 1;
+      line-height: 1.6;
+    }
+
+    /* BINARY BLOCKS */
+    .binary-blocks-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      max-height: 150px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .binary-char-block {
+      background: var(--panel-bg);
+      border: 1px solid var(--border-lab);
+      border-radius: 4px;
+      padding: 4px 8px;
+      font-size: 0.75rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .binary-char-label {
+      font-weight: 800;
+      color: var(--primary);
+    }
+
+    .binary-bits {
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    /* DNA NUCLEOTIDE STREAMING RENDERS */
+    .dna-sequence-render {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      font-family: var(--font-mono);
+      font-weight: 800;
+      font-size: 1.15rem;
+      max-height: 250px;
+      overflow-y: auto;
+      padding: 8px;
+      background: var(--panel-bg);
+      border: 1px solid var(--border-lab);
+      border-radius: 4px;
+    }
+
+    .nucleotide {
+      width: 24px;
+      height: 24px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+      color: #ffffff;
+      font-size: 0.85rem;
+      animation: popIn 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+    }
+
+    .nucleotide.base-a { background-color: var(--color-a); box-shadow: 0 0 6px rgba(37, 99, 235, 0.3); }
+    .nucleotide.base-t { background-color: var(--color-t); box-shadow: 0 0 6px rgba(6, 182, 212, 0.3); }
+    .nucleotide.base-c { background-color: var(--color-c); box-shadow: 0 0 6px rgba(79, 70, 229, 0.3); }
+    .nucleotide.base-g { background-color: var(--color-g); box-shadow: 0 0 6px rgba(13, 148, 136, 0.3); }
+
+    /* DECODER TYPEWRITER EFFECTS */
+    .decoded-text-output {
+      font-family: var(--font-mono);
+      font-size: 1.1rem;
+      color: var(--text-primary);
+      min-height: 60px;
+      padding: 12px;
+      background: var(--panel-bg);
+      border: 1px solid var(--border-lab);
+      border-radius: 4px;
+      position: relative;
+    }
+
+    .cursor-active::after {
+      content: '_';
+      animation: blink 0.8s steps(2, start) infinite;
+      color: var(--primary);
+      font-weight: 800;
+    }
+
+    /* ERROR FEEDBACK BANNER */
+    .alert-banner {
+      display: none;
+      align-items: flex-start;
+      gap: 12px;
+      border-radius: 6px;
+      padding: 12px 16px;
+      font-size: 0.85rem;
+      margin-top: 12px;
+      animation: slideDown 0.3s ease forwards;
+    }
+
+    .alert-banner.error {
+      display: flex;
+      background-color: var(--error-light);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+      color: #991b1b;
+    }
+
+    .alert-banner.success {
+      display: flex;
+      background-color: var(--success-light);
+      border: 1px solid rgba(16, 185, 129, 0.2);
+      color: #065f46;
+    }
+
+    .alert-banner-icon {
+      font-size: 1.1rem;
+      line-height: 1;
+      font-weight: 700;
+    }
+
+    .alert-banner-message {
+      font-family: var(--font-mono);
+      word-break: break-all;
+    }
+
+    /* PIPELINE SIMULATOR LAYOUT */
+    .pipeline-container {
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+
+    .pipeline-flow {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      padding: 20px 0;
+      position: relative;
+    }
+
+    @media (min-width: 992px) {
+      .pipeline-flow {
+        flex-direction: row;
+        justify-content: space-between;
+        padding: 40px 10px;
+      }
+    }
+
+    .pipeline-step {
+      background: var(--panel-bg);
+      border: 1px solid var(--border-lab);
+      border-radius: 8px;
+      padding: 16px;
+      width: 100%;
+      max-width: 320px;
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      transition: all 0.3s ease;
+      box-shadow: var(--shadow-sm);
+    }
+
+    @media (min-width: 992px) {
+      .pipeline-step {
+        width: 18%;
+        max-width: none;
+      }
+    }
+
+    .pipeline-step.active {
+      border-color: var(--primary);
+      box-shadow: var(--shadow-glow);
+      transform: translateY(-4px);
+    }
+
+    .pipeline-step.completed {
+      border-color: var(--success);
+      background-color: var(--primary-light);
+    }
+
+    .pipeline-step.completed .step-badge {
+      background-color: var(--success);
+      color: #ffffff;
+    }
+
+    .step-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .step-badge {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background-color: var(--bg-lab);
+      border: 1px solid var(--border-lab);
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+    }
+
+    .pipeline-step.active .step-badge {
+      background-color: var(--primary);
+      border-color: var(--primary);
+      color: #ffffff;
+    }
+
+    .step-title {
+      font-family: var(--font-heading);
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-secondary);
+    }
+
+    .pipeline-step.active .step-title {
+      color: var(--primary);
+    }
+
+    .step-preview {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      word-break: break-all;
+      background: var(--bg-body);
+      padding: 6px;
+      border-radius: 4px;
+      min-height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+
+    /* Connecting lines between pipeline steps */
+    .pipeline-connector {
+      width: 2px;
+      height: 20px;
+      background-color: var(--border-lab);
+      position: relative;
+      z-index: 1;
+    }
+
+    @media (min-width: 992px) {
+      .pipeline-connector {
+        width: 4%;
+        height: 2px;
+      }
+    }
+
+    .pipeline-connector-fill {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: var(--primary);
+      transform: scale(0);
+      transform-origin: left center;
+      transition: transform 0.5s ease;
+    }
+
+    .pipeline-connector.active .pipeline-connector-fill {
+      transform: scale(1);
+    }
+
+    /* SIMULATOR SCREEN PANEL */
+    .sim-screen {
+      background-color: #0f172a;
+      color: #f8fafc;
+      border-radius: 8px;
+      font-family: var(--font-mono);
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+      min-height: 240px;
+      border: 1px solid #1e293b;
+      box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.5);
+    }
+
+    .sim-screen::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: 
+        linear-gradient(to right, rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+      background-size: 10px 10px;
+      pointer-events: none;
+    }
+
+    .sim-screen-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #1e293b;
+      padding-bottom: 8px;
+      margin-bottom: 12px;
+      font-size: 0.75rem;
+      color: #94a3b8;
+    }
+
+    .sim-console-lines {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 0.85rem;
+    }
+
+    .console-line {
+      display: flex;
+      gap: 8px;
+      opacity: 0;
+      animation: fadeIn 0.3s ease forwards;
+    }
+
+    .console-line.cmd {
+      color: #38bdf8;
+    }
+
+    .console-line.success {
+      color: #34d399;
+    }
+
+    .console-line.info {
+      color: #e2e8f0;
+    }
+
+    .console-line-time {
+      color: #64748b;
+      flex-shrink: 0;
+    }
+
+    /* DOUBLE HELIX VISUALIZER PANEL */
+    .visualizer-container {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+
+    @media (min-width: 992px) {
+      .visualizer-container {
+        grid-template-columns: 1fr 320px;
+      }
+    }
+
+    .canvas-wrapper {
+      background: var(--panel-bg);
+      border: 1px solid var(--border-lab);
+      border-radius: 8px;
+      position: relative;
+      aspect-ratio: 16 / 9;
+      width: 100%;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: var(--shadow-sm);
+    }
+
+    #helix-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .canvas-hud-overlay {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--text-secondary);
+      background: rgba(255, 255, 255, 0.8);
+      padding: 6px 10px;
+      border: 1px solid var(--border-lab);
+      border-radius: 4px;
+      pointer-events: none;
+      backdrop-filter: blur(4px);
+    }
+
+    /* VISUALIZER SIDEBAR & LEGEND */
+    .vis-sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .legend-card {
+      background: var(--panel-bg);
+      border: 1px solid var(--border-lab);
+      border-radius: 6px;
+      padding: 16px;
+    }
+
+    .legend-title {
+      font-family: var(--font-heading);
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 12px;
+      color: var(--text-secondary);
+      border-bottom: 1px solid var(--border-lab);
+      padding-bottom: 6px;
+    }
+
+    .legend-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .legend-color-box {
+      width: 16px;
+      height: 16px;
+      border-radius: 4px;
+      flex-shrink: 0;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .legend-color-box.color-a { background-color: var(--color-a); }
+    .legend-color-box.color-t { background-color: var(--color-t); }
+    .legend-color-box.color-c { background-color: var(--color-c); }
+    .legend-color-box.color-g { background-color: var(--color-g); }
+
+    .legend-text {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .legend-name {
+      font-family: var(--font-body);
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .legend-pair {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      color: var(--text-muted);
+    }
+
+    /* CONTROL INPUT RANGES */
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      background: var(--panel-bg);
+      border: 1px solid var(--border-lab);
+      border-radius: 6px;
+      padding: 16px;
+    }
+
+    .control-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .control-label-row {
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--font-heading);
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--text-secondary);
+    }
+
+    .control-value {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--primary);
+    }
+
+    .lab-range {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 6px;
+      background: var(--bg-lab);
+      border: 1px solid var(--border-lab);
+      border-radius: 3px;
+      outline: none;
+    }
+
+    .lab-range::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--primary);
+      cursor: pointer;
+      transition: transform 0.1s ease;
+    }
+
+    .lab-range::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+    }
+
+    /* READOUT SYSTEM METRICS */
+    .lab-metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+
+    @media (min-width: 768px) {
+      .lab-metrics-grid {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+
+    .metric-card {
+      background: var(--panel-bg);
+      border: 1px solid var(--border-lab);
+      border-radius: 6px;
+      padding: 12px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .metric-label {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .metric-val {
+      font-family: var(--font-heading);
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--text-primary);
+    }
+
+    .metric-unit {
+      font-family: var(--font-body);
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      margin-left: 2px;
+    }
+
+    /* LAB FOOTER */
+    .lab-footer {
+      background-color: var(--panel-bg);
+      border-top: 1px solid var(--border-lab);
+      padding: 16px;
+      margin-top: auto;
+      text-align: center;
+      z-index: 10;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+
+    /* TOAST LAB ALERTS */
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      pointer-events: none;
+    }
+
+    .toast-alert {
+      background: var(--panel-bg);
+      border: 1px solid var(--border-lab);
+      border-left: 4px solid var(--primary);
+      border-radius: 6px;
+      padding: 12px 16px;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: var(--shadow-lg);
+      transform: translateX(120%);
+      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      pointer-events: auto;
+    }
+
+    .toast-alert.show {
+      transform: translateX(0);
+    }
+
+    .toast-alert.success {
+      border-left-color: var(--success);
+    }
+
+    .toast-alert.error {
+      border-left-color: var(--error);
+    }
+
+    /* ANIMATIONS KEYFRAMES */
+    @keyframes spin-slow {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes pulse-glow {
+      0%, 100% { opacity: 0.6; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.15); }
+    }
+
+    @keyframes popIn {
+      from { transform: scale(0); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes blink {
+      from, to { opacity: 1; }
+      50% { opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- LAB HEADER -->
+  <header class="lab-header">
+    <div class="header-logo-group">
+      <!-- DNA Helix Spinner SVG -->
+      <svg class="lab-logo" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4.5 10.5C4.5 7.46 6.96 5 10 5s5.5 2.46 5.5 5.5S13.04 16 10 16s-5.5-2.46-5.5-5.5Z"/>
+        <path d="M14 4.5C14 7.54 11.54 10 8.5 10S3 7.54 3 4.5 5.46 2 8.5 2 14 4.56 14 4.5Z" transform="translate(7, 7)"/>
+        <path d="m7 7 10 10"/>
+      </svg>
+      <div class="header-title-group">
+        <h1 class="header-title">Synth Storage</h1>
+        <span class="header-subtitle">DNA Data Storage Unit // Simulator DSU-1.0</span>
+      </div>
+    </div>
+    <div class="header-status-badge">
+      <span class="status-dot"></span>
+      <span id="system-status-text">NODE // ONLINE</span>
+    </div>
+  </header>
+
+  <!-- STICKY TOP NAVBAR -->
+  <div class="lab-navbar-wrapper">
+    <nav class="lab-navbar">
+      <button class="nav-tab active" onclick="switchTab(this, 'encoder')">
+        <span class="nav-tab-num">01</span> TEXT ENCODER
+      </button>
+      <button class="nav-tab" onclick="switchTab(this, 'decoder')">
+        <span class="nav-tab-num">02</span> DNA DECODER
+      </button>
+      <button class="nav-tab" onclick="switchTab(this, 'simulator')">
+        <span class="nav-tab-num">03</span> PIPELINE SIMULATOR
+      </button>
+      <button class="nav-tab" onclick="switchTab(this, 'visualizer')">
+        <span class="nav-tab-num">04</span> HELIX VISUALIZER
+      </button>
+    </nav>
+  </div>
+
+  <!-- MAIN APP CONTAINER -->
+  <main class="lab-container">
+    
+    <!-- SECTION 1: TEXT TO DNA ENCODER -->
+    <section id="encoder" class="view-section active">
+      <div class="panel-grid">
+        <!-- Input Panel -->
+        <div class="lab-card">
+          <div class="lab-corner corner-tl"></div>
+          <div class="lab-corner corner-tr"></div>
+          <div class="lab-corner corner-bl"></div>
+          <div class="lab-corner corner-br"></div>
+          <div class="lab-card-header">
+            <h2 class="lab-card-title">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+              DATA INGESTION / TEXT INPUT
+            </h2>
+          </div>
+          <div class="lab-card-body">
+            <label class="lab-label" for="encoder-input">Enter text to translate into molecular structure</label>
+            <textarea id="encoder-input" class="lab-textarea" placeholder="Type data here (e.g. Hello Lab!). Each character translates into 8 binary bits, mapping to 4 DNA base pairs."></textarea>
+            <div class="input-counter-group">
+              <span>LIMIT: 500 CHARACTERS</span>
+              <span id="encoder-char-count">0 / 500 characters</span>
+            </div>
+            
+            <div class="lab-btn-group">
+              <button class="lab-btn" id="btn-encode" onclick="runEncoder()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                SYNTHESIZE TO DNA
+              </button>
+              <button class="lab-btn secondary" onclick="loadEncoderSample()">LOAD SAMPLE</button>
+              <button class="lab-btn danger" onclick="clearEncoder()">CLEAR</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Output Panel -->
+        <div class="lab-card">
+          <div class="lab-corner corner-tl"></div>
+          <div class="lab-corner corner-tr"></div>
+          <div class="lab-corner corner-bl"></div>
+          <div class="lab-corner corner-br"></div>
+          <div class="lab-card-header">
+            <h2 class="lab-card-title">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+              SYNTHESIS PIPELINE READOUTS
+            </h2>
+          </div>
+          <div class="lab-card-body" style="display: flex; flex-direction: column; gap: 20px;">
+            <!-- Binary Intermediate Step -->
+            <div class="readout-panel">
+              <div class="readout-panel-header">
+                <span class="readout-panel-title">
+                  <span class="status-dot" style="background-color: var(--primary); box-shadow: 0 0 4px var(--primary);"></span>
+                  STAGE 1: BINARY INTERMEDIATE (8-BIT ASCII)
+                </span>
+                <button class="copy-btn" title="Copy Binary Output" onclick="copyToClipboard('binary-output-text')">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                </button>
+              </div>
+              <div class="readout-content" id="binary-output-text">
+                <span style="color: var(--text-muted);">Awaiting text encoding sequence...</span>
+              </div>
+            </div>
+
+            <!-- DNA Sequence Output -->
+            <div class="readout-panel">
+              <div class="readout-panel-header">
+                <span class="readout-panel-title">
+                  <span class="status-dot" style="background-color: var(--success); box-shadow: 0 0 4px var(--success);"></span>
+                  STAGE 2: DNA SEQUENCE (NUCLEOTIDE ENCODING)
+                </span>
+                <button class="copy-btn" title="Copy DNA Output" onclick="copyToClipboard('dna-output-text', true)">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                </button>
+              </div>
+              <div class="dna-sequence-render" id="dna-output-text">
+                <span style="color: var(--text-muted);">Awaiting encoding outputs...</span>
+              </div>
+              <div class="input-counter-group" style="margin-top: 4px; padding-top: 4px; border-top: 1px dashed var(--border-lab);">
+                <span id="output-codon-count">0 Nucleotides (nt)</span>
+                <span id="output-byte-size">0 Bytes</span>
+              </div>
+            </div>
+
+            <!-- VIRTUAL STORAGE INGESTION (NEW) -->
+            <div class="readout-panel" id="db-save-panel" style="margin-top: 12px; min-height: auto;">
+              <div class="readout-panel-header">
+                <span class="readout-panel-title">
+                  <span class="status-dot" id="db-status-dot" style="background-color: var(--text-muted); box-shadow: 0 0 4px var(--text-muted);"></span>
+                  VIRTUAL STORAGE: SAVE VIAL
+                </span>
+              </div>
+              <div class="control-group" style="border: none; padding: 0; background: transparent; display: flex; flex-direction: row; gap: 8px; align-items: flex-end;">
+                <div class="control-item" style="flex: 1; margin-bottom: 0;">
+                  <label class="lab-label" style="font-size: 0.65rem;" for="vial-label-input">Vial Label / Name</label>
+                  <input type="text" id="vial-label-input" class="lab-textarea mono" style="height: 36px; padding: 6px 10px; font-size: 0.8rem; overflow: hidden; white-space: nowrap; margin-bottom: 0;" placeholder="e.g. VIAL-A1">
+                </div>
+                <button class="lab-btn" id="btn-save-vial" onclick="saveVialToDb()" style="height: 36px; padding: 0 16px; margin-top: 0; font-size: 0.75rem;" disabled>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                  STORE IN VIAL
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 2: DNA TO TEXT DECODER -->
+    <section id="decoder" class="view-section">
+      <div class="panel-grid">
+        <!-- Input Panel -->
+        <div class="lab-card">
+          <div class="lab-corner corner-tl"></div>
+          <div class="lab-corner corner-tr"></div>
+          <div class="lab-corner corner-bl"></div>
+          <div class="lab-corner corner-br"></div>
+          <div class="lab-card-header">
+            <h2 class="lab-card-title">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+              MOLECULAR ANALYSIS / DNA SEQUENCE PASTING
+            </h2>
+          </div>
+          <div class="lab-card-body">
+            <!-- VIRTUAL STORAGE RETRIEVAL (NEW) -->
+            <div class="readout-panel" id="db-load-panel" style="margin-bottom: 16px; min-height: auto;">
+              <div class="readout-panel-header">
+                <span class="readout-panel-title">
+                  <span class="status-dot" id="db-load-status-dot" style="background-color: var(--text-muted); box-shadow: 0 0 4px var(--text-muted);"></span>
+                  LOAD FROM VIRTUAL VIAL INVENTORY
+                </span>
+              </div>
+              <div class="control-group" style="border: none; padding: 0; background: transparent; display: flex; flex-direction: row; gap: 8px; align-items: flex-end;">
+                <div class="control-item" style="flex: 1; margin-bottom: 0;">
+                  <label class="lab-label" style="font-size: 0.65rem;" for="vial-select">Select Stored Vial</label>
+                  <select id="vial-select" class="lab-textarea mono" style="height: 36px; padding: 6px 10px; font-size: 0.8rem; margin-bottom: 0; outline: none; border-color: var(--border-lab); cursor: pointer;" onchange="loadVialFromDb(this.value)">
+                    <option value="">-- No Vials Stored / Offline --</option>
+                  </select>
+                </div>
+                <button class="lab-btn secondary" onclick="refreshVialList()" style="height: 36px; padding: 0 12px; margin-top: 0;" title="Refresh Inventory">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                </button>
+              </div>
+            </div>
+
+            <label class="lab-label" for="decoder-input">Paste DNA Sequence (only A, T, C, G characters are valid)</label>
+            <textarea id="decoder-input" class="lab-textarea mono" placeholder="Paste nucleotides here... E.g. TACATCTTTCGATCGATCGG (must be a multiple of 4 bases to form whole bytes)."></textarea>
+            
+            <div class="alert-banner error" id="decoder-error-banner">
+              <span class="alert-banner-icon">⚠️</span>
+              <span class="alert-banner-message" id="decoder-error-msg"></span>
+            </div>
+
+            <div class="lab-btn-group">
+              <button class="lab-btn" id="btn-decode" onclick="runDecoder()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                DECODE TO TEXT
+              </button>
+              <button class="lab-btn secondary" onclick="loadDecoderSample('valid')">LOAD SAMPLE DNA</button>
+              <button class="lab-btn secondary" onclick="loadDecoderSample('invalid')">LOAD CORRUPTED DNA</button>
+              <button class="lab-btn danger" onclick="clearDecoder()">CLEAR</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Output Panel -->
+        <div class="lab-card">
+          <div class="lab-corner corner-tl"></div>
+          <div class="lab-corner corner-tr"></div>
+          <div class="lab-corner corner-bl"></div>
+          <div class="lab-corner corner-br"></div>
+          <div class="lab-card-header">
+            <h2 class="lab-card-title">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+              DECODER BIO-READOUT
+            </h2>
+          </div>
+          <div class="lab-card-body" style="display: flex; flex-direction: column; gap: 20px;">
+            <!-- Binary Intermediate Step -->
+            <div class="readout-panel">
+              <div class="readout-panel-header">
+                <span class="readout-panel-title">
+                  <span class="status-dot" style="background-color: var(--color-c); box-shadow: 0 0 4px var(--color-c);"></span>
+                  RECONSTRUCTED BINARY MATRIX
+                </span>
+                <button class="copy-btn" title="Copy Binary Output" onclick="copyToClipboard('decoder-binary-output')">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                </button>
+              </div>
+              <div class="readout-content" id="decoder-binary-output">
+                <span style="color: var(--text-muted);">Awaiting DNA sequence input...</span>
+              </div>
+            </div>
+
+            <!-- Decoded Text -->
+            <div class="readout-panel">
+              <div class="readout-panel-header">
+                <span class="readout-panel-title">
+                  <span class="status-dot" style="background-color: var(--success); box-shadow: 0 0 4px var(--success);"></span>
+                  RECONSTRUCTED DATA / DECODED TEXT
+                </span>
+                <button class="copy-btn" title="Copy Decoded Text" onclick="copyToClipboard('decoder-text-output')">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                </button>
+              </div>
+              <div class="decoded-text-output cursor-active" id="decoder-text-output">
+                <span style="color: var(--text-muted);">Awaiting molecular read outputs...</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Inventory Management Card (NEW) -->
+      <div class="lab-card" style="margin-top: 24px;" id="inventory-manager-card">
+        <div class="lab-corner corner-tl"></div>
+        <div class="lab-corner corner-tr"></div>
+        <div class="lab-corner corner-bl"></div>
+        <div class="lab-corner corner-br"></div>
+        <div class="lab-card-header">
+          <h2 class="lab-card-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+            VIRTUAL LAB DATABASE INVENTORY
+          </h2>
+        </div>
+        <div class="lab-card-body" style="padding: 16px 20px;">
+          <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; font-family: var(--font-mono); font-size: 0.8rem; text-align: left;">
+              <thead>
+                <tr style="border-bottom: 2px solid var(--border-lab); color: var(--text-secondary); height: 32px;">
+                  <th style="padding: 8px 12px; font-weight: 700;">ID</th>
+                  <th style="padding: 8px 12px; font-weight: 700;">LABEL</th>
+                  <th style="padding: 8px 12px; font-weight: 700;">STRAND LENGTH</th>
+                  <th style="padding: 8px 12px; font-weight: 700;">PAYLOAD (PEEK)</th>
+                  <th style="padding: 8px 12px; font-weight: 700;">SYNTHESIS TIME</th>
+                  <th style="padding: 8px 12px; font-weight: 700; text-align: right;">ACTION</th>
+                </tr>
+              </thead>
+              <tbody id="inventory-table-body">
+                <tr>
+                  <td colspan="6" style="padding: 16px 12px; text-align: center; color: var(--text-muted);">No vials stored in virtual database inventory.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 3: FULL PIPELINE SIMULATOR -->
+    <section id="simulator" class="view-section">
+      <div class="lab-card">
+        <div class="lab-corner corner-tl"></div>
+        <div class="lab-corner corner-tr"></div>
+        <div class="lab-corner corner-bl"></div>
+        <div class="lab-corner corner-br"></div>
+        <div class="lab-card-header">
+          <h2 class="lab-card-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            END-TO-END MOLECULAR STORAGE PIPELINE SIMULATION
+          </h2>
+        </div>
+        <div class="lab-card-body pipeline-container">
+          
+          <!-- STAGE PIPELINE CONNECTIONS FLOW CHART -->
+          <div class="pipeline-flow">
+            <!-- Step 1 -->
+            <div class="pipeline-step" id="step-1">
+              <div class="step-header">
+                <span class="step-badge">1</span>
+                <span class="step-title">Input Text Data</span>
+              </div>
+              <div class="step-preview" id="step-1-preview">Empty</div>
+            </div>
+            
+            <div class="pipeline-connector" id="connector-1">
+              <div class="pipeline-connector-fill"></div>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="pipeline-step" id="step-2">
+              <div class="step-header">
+                <span class="step-badge">2</span>
+                <span class="step-title">Binary Conversion</span>
+              </div>
+              <div class="step-preview" id="step-2-preview">Empty</div>
+            </div>
+
+            <div class="pipeline-connector" id="connector-2">
+              <div class="pipeline-connector-fill"></div>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="pipeline-step" id="step-3">
+              <div class="step-header">
+                <span class="step-badge">3</span>
+                <span class="step-title">DNA Synthesizer</span>
+              </div>
+              <div class="step-preview" id="step-3-preview">Empty</div>
+            </div>
+
+            <div class="pipeline-connector" id="connector-3">
+              <div class="pipeline-connector-fill"></div>
+            </div>
+
+            <!-- Step 4 -->
+            <div class="pipeline-step" id="step-4">
+              <div class="step-header">
+                <span class="step-badge">4</span>
+                <span class="step-title">Molecular Storage</span>
+              </div>
+              <div class="step-preview" id="step-4-preview" style="display: flex; flex-direction: column; gap: 4px; justify-content: center; align-items: center; min-height: 48px;">
+                <span id="step-4-text">Helix Empty</span>
+                <div id="mini-canvas-wrap" style="width: 100%; height: 32px; display: none; border: 1px solid var(--border-lab); border-radius: 4px; background: #0f172a; overflow: hidden; position: relative;">
+                  <canvas id="mini-helix-canvas" style="width: 100%; height: 100%; display: block;"></canvas>
+                </div>
+              </div>
+            </div>
+
+            <div class="pipeline-connector" id="connector-4">
+              <div class="pipeline-connector-fill"></div>
+            </div>
+
+            <!-- Step 5 -->
+            <div class="pipeline-step" id="step-5">
+              <div class="step-header">
+                <span class="step-badge">5</span>
+                <span class="step-title">Sequencing & Decode</span>
+              </div>
+              <div class="step-preview" id="step-5-preview">Empty</div>
+            </div>
+          </div>
+
+          <!-- INPUT FORM & CONTROL PANEL FOR SIMULATION -->
+          <div style="display: flex; flex-direction: column; gap: 16px;">
+            <div style="display: grid; grid-template-columns: 1fr; gap: 16px;">
+              <div>
+                <label class="lab-label" for="sim-input-text">Simulation Data Payload (Text)</label>
+                <textarea id="sim-input-text" class="lab-textarea" style="height: 80px;" placeholder="Type words here to watch the DNA pipeline storage simulation flow..."></textarea>
+              </div>
+              <div class="control-group" style="justify-content: center;">
+                <div class="control-item">
+                  <div class="control-label-row">
+                    <span>SIMULATION SPEED CONTROLLER</span>
+                    <span class="control-value" id="sim-speed-val">1.0x (Normal)</span>
+                  </div>
+                  <input type="range" class="lab-range" id="sim-speed-range" min="0.25" max="3" step="0.25" value="1" oninput="updateSimSpeed(this.value)">
+                </div>
+              </div>
+            </div>
+
+            <div class="lab-btn-group" style="margin-top: 0;">
+              <button class="lab-btn" id="btn-sim-start" onclick="startPipelineSimulation()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                RUN SIMULATION
+              </button>
+              <button class="lab-btn secondary" id="btn-sim-reset" onclick="resetPipelineSimulation()" disabled>RESET</button>
+            </div>
+          </div>
+
+          <!-- VIRTUAL SIMULATOR CONSOLE DISPLAY SCREEN -->
+          <div class="sim-screen">
+            <div class="sim-screen-header">
+              <span>SYNTH STORAGE // CONSOLE READOUTS</span>
+              <span id="console-node-address">NODE-ADDR: 192.168.10.8</span>
+            </div>
+            <div class="sim-console-lines" id="sim-console-lines">
+              <div class="console-line info">
+                <span class="console-line-time">[00:00:00.00]</span>
+                <span>System initialized. Input data payload to run simulated write/read cycles.</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 4: DNA DOUBLE HELIX VISUALIZER -->
+    <section id="visualizer" class="view-section">
+      <div class="lab-card">
+        <div class="lab-corner corner-tl"></div>
+        <div class="lab-corner corner-tr"></div>
+        <div class="lab-corner corner-bl"></div>
+        <div class="lab-corner corner-br"></div>
+        <div class="lab-card-header">
+          <h2 class="lab-card-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            DNA DOUBLE HELIX INTERACTIVE RENDERER (3D ROTATION)
+          </h2>
+        </div>
+        <div class="lab-card-body visualizer-container">
+          
+          <!-- CANVAS CONTAINER -->
+          <div class="canvas-wrapper">
+            <div class="canvas-hud-overlay">
+              <div>RENDER MODEL: DNA 3D SINE PROJECTION</div>
+              <div id="vis-sequence-length">ACTIVE SEQUENCE: 24 base pairs</div>
+            </div>
+            <canvas id="helix-canvas"></canvas>
+          </div>
+
+          <!-- CONTROLS & COLOR LEGEND SIDEBAR -->
+          <div class="vis-sidebar">
+            <!-- Legend Panel -->
+            <div class="legend-card">
+              <div class="legend-title">NUCLEOTIDE BASE LEGEND</div>
+              <div class="legend-grid">
+                <div class="legend-item">
+                  <div class="legend-color-box color-a"></div>
+                  <div class="legend-text">
+                    <span class="legend-name">Adenine (A)</span>
+                    <span class="legend-pair">Pairs with T (00)</span>
+                  </div>
+                </div>
+                <div class="legend-item">
+                  <div class="legend-color-box color-t"></div>
+                  <div class="legend-text">
+                    <span class="legend-name">Thymine (T)</span>
+                    <span class="legend-pair">Pairs with A (01)</span>
+                  </div>
+                </div>
+                <div class="legend-item">
+                  <div class="legend-color-box color-c"></div>
+                  <div class="legend-text">
+                    <span class="legend-name">Cytosine (C)</span>
+                    <span class="legend-pair">Pairs with G (10)</span>
+                  </div>
+                </div>
+                <div class="legend-item">
+                  <div class="legend-color-box color-g"></div>
+                  <div class="legend-text">
+                    <span class="legend-name">Guanine (G)</span>
+                    <span class="legend-pair">Pairs with C (11)</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Parameters Sliders Panel -->
+            <div class="control-group">
+              <div class="legend-title" style="margin-bottom: 6px; border-bottom: none;">HELIX PARAMETERS</div>
+              
+              <!-- Speed -->
+              <div class="control-item">
+                <div class="control-label-row">
+                  <span>ROTATION SPEED</span>
+                  <span class="control-value" id="vis-val-speed">1.5 rad/s</span>
+                </div>
+                <input type="range" class="lab-range" id="vis-speed" min="0" max="4" step="0.2" value="1.5" oninput="updateHelixParam('speed', this.value)">
+              </div>
+
+              <!-- Frequency/Loops -->
+              <div class="control-item">
+                <div class="control-label-row">
+                  <span>HELIX LOOPS</span>
+                  <span class="control-value" id="vis-val-loops">2.5 loops</span>
+                </div>
+                <input type="range" class="lab-range" id="vis-loops" min="1" max="6" step="0.1" value="2.5" oninput="updateHelixParam('loops', this.value)">
+              </div>
+
+              <!-- Base Node Radius -->
+              <div class="control-item">
+                <div class="control-label-row">
+                  <span>NODE SIZE</span>
+                  <span class="control-value" id="vis-val-nodesize">8px</span>
+                </div>
+                <input type="range" class="lab-range" id="vis-nodesize" min="4" max="15" step="1" value="8" oninput="updateHelixParam('nodesize', this.value)">
+              </div>
+
+              <!-- Color Sequence Selection override -->
+              <div class="control-item" style="margin-top: 6px;">
+                <label class="lab-label" style="font-size: 0.68rem;" for="helix-text-override">OVERRIDE DNA TEMPLATE</label>
+                <input type="text" id="helix-text-override" class="lab-textarea mono" style="height: 36px; padding: 6px 10px; font-size: 0.8rem; overflow: hidden; white-space: nowrap;" placeholder="Type nucleotides (e.g. ATCGATCGAT)" oninput="updateHelixTemplateSequence(this.value)">
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- LAB SYSTEM DIAGNOSTICS STATS -->
+    <section class="lab-metrics-grid">
+      <div class="metric-card">
+        <span class="metric-label">VOLUMETRIC DENSITY</span>
+        <span class="metric-val">215<span class="metric-unit">PB / g</span></span>
+      </div>
+      <div class="metric-card">
+        <span class="metric-label">CODON PACKING EFFICIENCY</span>
+        <span class="metric-val">2.0<span class="metric-unit">bits/base</span></span>
+      </div>
+      <div class="metric-card">
+        <span class="metric-label">DE-HYDRATION LIFE ESTIMATE</span>
+        <span class="metric-val">10K+<span class="metric-unit">years</span></span>
+      </div>
+      <div class="metric-card">
+        <span class="metric-label">ACTIVE NUCLEOTIDE LENGTH</span>
+        <span class="metric-val" id="global-nucleotide-count">0<span class="metric-unit">nt</span></span>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- LAB SYSTEM FOOTER -->
+  <footer class="lab-footer">
+    SYNTHETIC MOLECULAR LOGISTICS CORP. &copy; 2026 // ALL RIGHTS RESERVED // PROTOCOL DSU-AES8
+  </footer>
+
+  <!-- TOAST ALERT CONTAINER -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- JAVASCRIPT LOGIC ENGINE -->
+  <script>
+    // GLOBAL STATE VARIABLES
+    let currentActiveTab = 'encoder';
+    let globalDnaSequence = ''; // Set dynamically by encoder, loaded into visualizer
+    let typewriterTimeout = null;
+    let sequenceRevealIntervals = [];
+
+    // BACKEND DATABASE INTEGRATION (NEW)
+    const API_BASE = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+      ? "http://127.0.0.1:8000"
+      : window.location.origin;
+    let isBackendConnected = false;
+
+    // DNA ENCODING & DECODING ALGORITHMS
+    const BINARY_TO_BASE = {
+      "00": "A",
+      "01": "T",
+      "10": "C",
+      "11": "G"
+    };
+
+    const BASE_TO_BINARY = {
+      "A": "00",
+      "T": "01",
+      "C": "10",
+      "G": "11"
+    };
+
+    // Helper: Convert text input to 8-bit ASCII binary sequence
+    function textToBinaryString(text) {
+      let binaryResult = '';
+      for (let i = 0; i < text.length; i++) {
+        let asciiValue = text.charCodeAt(i);
+        // Ensure character fits 8-bit ASCII boundary (0-255)
+        if (asciiValue > 255) {
+          // Fallback or unicode sanitization. We clamp to standard extended ASCII for consistency.
+          asciiValue = asciiValue % 256;
+        }
+        let binaryByte = asciiValue.toString(2).padStart(8, '0');
+        binaryResult += binaryByte;
+      }
+      return binaryResult;
+    }
+
+    // Helper: Convert binary string back to standard ASCII text characters
+    function binaryStringToText(binary) {
+      let textResult = '';
+      for (let i = 0; i < binary.length; i += 8) {
+        let binaryByte = binary.substr(i, 8);
+        if (binaryByte.length < 8) break; // Discard trailing bits that can't form a byte
+        let charCode = parseInt(binaryByte, 2);
+        textResult += String.fromCharCode(charCode);
+      }
+      return textResult;
+    }
+
+    // Convert text directly to DNA sequence
+    function encodeTextToDna(text) {
+      const binary = textToBinaryString(text);
+      let dna = '';
+      for (let i = 0; i < binary.length; i += 2) {
+        let bits = binary.substr(i, 2);
+        dna += BINARY_TO_BASE[bits];
+      }
+      return { binary, dna };
+    }
+
+    // Convert DNA directly to Text with validation
+    function decodeDnaToText(dnaSequence) {
+      // Clean input: remove whitespace/linebreaks and cast uppercase
+      const cleanedDna = dnaSequence.replace(/\s+/g, '').toUpperCase();
+      
+      // Validation check 1: Empty input
+      if (cleanedDna.length === 0) {
+        return { error: 'DATA EMPTY: Please provide a valid DNA sequence.' };
+      }
+
+      // Validation check 2: Invalid characters
+      for (let i = 0; i < cleanedDna.length; i++) {
+        const base = cleanedDna[i];
+        if (!['A', 'T', 'C', 'G'].includes(base)) {
+          return { error: `SYNTAX ERROR: Invalid base character '${base}' detected at base index ${i + 1}. Sequence must only contain Adenine (A), Thymine (T), Cytosine (C), and Guanine (G).` };
+        }
+      }
+
+      // Translate DNA bases back to binary string
+      let binary = '';
+      for (let i = 0; i < cleanedDna.length; i++) {
+        binary += BASE_TO_BINARY[cleanedDna[i]];
+      }
+
+      // Translate binary to text string
+      const text = binaryStringToText(binary);
+
+      // Validation check 3: Missing base frames (codon block is 2 bits, character block is 8 bits = 4 base pairs)
+      if (cleanedDna.length % 4 !== 0) {
+        return { 
+          error: `ALIGNMENT WARNING: DNA sequence length is ${cleanedDna.length} bases. It must be a multiple of 4 to form complete 8-bit characters. Decoded text may be incomplete or truncated.`,
+          warningOnly: true,
+          binary,
+          text,
+          cleanedDna
+        };
+      }
+
+      return { binary, text, cleanedDna };
+    }
+
+    // TOAST ALERTS NOTIFICATIONS
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toast-container');
+      
+      const toast = document.createElement('div');
+      toast.className = `toast-alert ${type}`;
+      
+      let icon = 'ℹ️';
+      if (type === 'success') icon = '✅';
+      if (type === 'error') icon = '🚨';
+      
+      toast.innerHTML = `
+        <span>${icon}</span>
+        <span>${message}</span>
+      `;
+      
+      container.appendChild(toast);
+      
+      // Trigger show transition
+      setTimeout(() => {
+        toast.classList.add('show');
+      }, 50);
+      
+      // Auto-destruct toast
+      setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => {
+          toast.remove();
+        }, 300);
+      }, 4000);
+    }
+
+    // TAB SELECTION CONTROLLER
+    function switchTab(tabElement, targetSection) {
+      // Toggle navbar active classes
+      document.querySelectorAll('.nav-tab').forEach(tab => {
+        tab.classList.remove('active');
+      });
+      // Add active to current button
+      if (tabElement) {
+        tabElement.classList.add('active');
+      }
+
+      // Toggle views
+      document.querySelectorAll('.view-section').forEach(sec => {
+        sec.classList.remove('active');
+      });
+      document.getElementById(targetSection).classList.add('active');
+
+      currentActiveTab = targetSection;
+      
+      // Special canvas visualizer resizing if visualizer tab selected
+      if (targetSection === 'visualizer') {
+        resizeCanvas();
+      }
+    }
+
+    // COPY TO CLIPBOARD UTILITY
+    function copyToClipboard(elementId, isDnaContainer = false) {
+      let content = '';
+      if (isDnaContainer) {
+        // Collect text from nucleotide span boxes
+        const nodes = document.querySelectorAll(`#${elementId} .nucleotide`);
+        if (nodes.length > 0) {
+          nodes.forEach(node => content += node.textContent.trim());
+        } else {
+          // If fallback text
+          content = document.getElementById(elementId).innerText;
+        }
+      } else if (elementId === 'binary-output-text' || elementId === 'decoder-binary-output') {
+        // Extract raw binary bits from character blocks
+        const bitNodes = document.querySelectorAll(`#${elementId} .binary-bits`);
+        if (bitNodes.length > 0) {
+          bitNodes.forEach(node => content += node.textContent.trim());
+        } else {
+          content = document.getElementById(elementId).innerText;
+        }
+      } else {
+        content = document.getElementById(elementId).innerText;
+      }
+      
+      if (!content || content.includes('Awaiting') || content.includes('Empty')) {
+        showToast('No valid output data to copy!', 'error');
+        return;
+      }
+      
+      navigator.clipboard.writeText(content).then(() => {
+        showToast('Data copied to clipboard!', 'success');
+      }).catch(err => {
+        showToast('Failed to copy data sequence.', 'error');
+      });
+    }
+
+    // ----------------------------------------------------
+    // TAB 1: TEXT TO DNA ENCODER LOGIC
+    // ----------------------------------------------------
+    const encoderInput = document.getElementById('encoder-input');
+    const encoderCharCount = document.getElementById('encoder-char-count');
+
+    // Real-time counter & bounds check
+    encoderInput.addEventListener('input', () => {
+      let text = encoderInput.value;
+      if (text.length > 500) {
+        encoderInput.value = text.substring(0, 500);
+        text = encoderInput.value;
+      }
+      encoderCharCount.textContent = `${text.length} / 500 characters`;
+    });
+
+    function loadEncoderSample() {
+      encoderInput.value = "Storage density of DNA is insane: 215 PB per gram!";
+      encoderInput.dispatchEvent(new Event('input'));
+      showToast('Loaded lab test data payload', 'success');
+      runEncoder();
+    }
+
+    function clearEncoder() {
+      encoderInput.value = '';
+      encoderInput.dispatchEvent(new Event('input'));
+      document.getElementById('binary-output-text').innerHTML = '<span style="color: var(--text-muted);">Awaiting text encoding sequence...</span>';
+      document.getElementById('dna-output-text').innerHTML = '<span style="color: var(--text-muted);">Awaiting encoding outputs...</span>';
+      document.getElementById('output-codon-count').textContent = '0 Nucleotides (nt)';
+      document.getElementById('output-byte-size').textContent = '0 Bytes';
+      const saveBtn = document.getElementById('btn-save-vial');
+      if (saveBtn) saveBtn.disabled = true;
+      const labelInput = document.getElementById('vial-label-input');
+      if (labelInput) labelInput.value = '';
+      showToast('Encoder inputs and outputs cleared', 'info');
+    }
+
+    function runEncoder() {
+      const text = encoderInput.value;
+      if (!text.trim()) {
+        showToast('Please type text payload to synthesize.', 'error');
+        return;
+      }
+
+      // Clear any prior rendering intervals
+      sequenceRevealIntervals.forEach(clearTimeout);
+      sequenceRevealIntervals = [];
+
+      const { binary, dna } = encodeTextToDna(text);
+      globalDnaSequence = dna; // Push to global visualizer template
+      
+      // Update Metrics Readout
+      document.getElementById('global-nucleotide-count').innerHTML = `${dna.length}<span class="metric-unit">nt</span>`;
+      document.getElementById('output-codon-count').textContent = `${dna.length} Nucleotides (nt)`;
+      document.getElementById('output-byte-size').textContent = `${text.length} Bytes`;
+
+      // 1. Render Binary Intermediate step beautifully
+      const binaryOutput = document.getElementById('binary-output-text');
+      binaryOutput.innerHTML = '';
+      const binaryBlocksWrap = document.createElement('div');
+      binaryBlocksWrap.className = 'binary-blocks-container';
+
+      for (let i = 0; i < text.length; i++) {
+        const char = text[i];
+        const byteIndex = i * 8;
+        const byteBits = binary.substr(byteIndex, 8);
+        
+        const block = document.createElement('div');
+        block.className = 'binary-char-block';
+        
+        // Escape special chars / whitespace for layout readability
+        let displayChar = char;
+        if (char === ' ') displayChar = 'SPC';
+        if (char === '\n') displayChar = 'CRLF';
+        
+        block.innerHTML = `
+          <span class="binary-char-label">${displayChar}</span>
+          <span class="binary-bits">${byteBits}</span>
+        `;
+        binaryBlocksWrap.appendChild(block);
+      }
+      binaryOutput.appendChild(binaryBlocksWrap);
+
+      // 2. Render DNA Output step with base-by-base animated reveal
+      const dnaOutput = document.getElementById('dna-output-text');
+      dnaOutput.innerHTML = ''; // wipe display
+
+      // Stagger base-by-base appearance
+      const animationSpeed = Math.max(3, 400 / dna.length); // limit maximum rendering delay
+      
+      for (let index = 0; index < dna.length; index++) {
+        const base = dna[index];
+        const delay = index * animationSpeed;
+        
+        const revealTimeout = setTimeout(() => {
+          const baseNode = document.createElement('span');
+          baseNode.className = `nucleotide base-${base.toLowerCase()}`;
+          baseNode.textContent = base;
+          dnaOutput.appendChild(baseNode);
+          
+          // Scroll automatically to keep up with printing
+          dnaOutput.scrollTop = dnaOutput.scrollHeight;
+        }, delay);
+        
+        sequenceRevealIntervals.push(revealTimeout);
+      }
+      
+      // Complete notification
+      setTimeout(() => {
+        showToast('DNA Sequence Synthesized successfully!', 'success');
+        // Enable database save button if backend is connected
+        const saveBtn = document.getElementById('btn-save-vial');
+        if (saveBtn) {
+          saveBtn.disabled = !isBackendConnected;
+        }
+      }, dna.length * animationSpeed + 100);
+    }
+
+    // ----------------------------------------------------
+    // TAB 2: DNA TO TEXT DECODER LOGIC
+    // ----------------------------------------------------
+    const decoderInput = document.getElementById('decoder-input');
+    const errorBanner = document.getElementById('decoder-error-banner');
+    const errorMsg = document.getElementById('decoder-error-msg');
+
+    function loadDecoderSample(type) {
+      if (type === 'valid') {
+        // Encodes "BioData" 
+        // B (01000010) -> TAAC, i (01101001) -> TCTC, o (01101111) -> TCGG, D (01000100) -> TAAT, a (01100001) -> TCAA, t (01110100) -> TGAT, a (01100001) -> TCAA
+        // TAACTCTCTCGGTAATTGAATCAA
+        decoderInput.value = 'TAACTCTCTCGGTAATTGAATCAA';
+        showToast('Loaded valid synthesis DNA sequence', 'success');
+        runDecoder();
+      } else if (type === 'invalid') {
+        // Contains corrupted 'X' or is non-aligned length
+        decoderInput.value = 'TAACTCTCTCGGTAATTGAAXCAA';
+        showToast('Loaded corrupted DNA sample', 'success');
+        runDecoder();
+      }
+      errorBanner.style.display = 'none';
+    }
+
+    function clearDecoder() {
+      decoderInput.value = '';
+      errorBanner.style.display = 'none';
+      document.getElementById('decoder-binary-output').innerHTML = '<span style="color: var(--text-muted);">Awaiting DNA sequence input...</span>';
+      document.getElementById('decoder-text-output').innerHTML = '<span style="color: var(--text-muted);">Awaiting molecular read outputs...</span>';
+      document.getElementById('decoder-text-output').classList.add('cursor-active');
+      if (typewriterTimeout) clearTimeout(typewriterTimeout);
+      showToast('Decoder inputs and outputs cleared', 'info');
+    }
+
+    function runDecoder() {
+      const dnaVal = decoderInput.value;
+      if (typewriterTimeout) clearTimeout(typewriterTimeout);
+      errorBanner.style.display = 'none';
+
+      const decodedResult = decodeDnaToText(dnaVal);
+
+      // Handle decoding syntax / constraint errors
+      if (decodedResult.error) {
+        errorMsg.textContent = decodedResult.error;
+        errorBanner.className = 'alert-banner error';
+        errorBanner.style.display = 'flex';
+        showToast('DNA Decoding Pipeline Error!', 'error');
+
+        // Check if it's only a warning (incomplete bytes layout) or outright crash
+        if (!decodedResult.warningOnly) {
+          document.getElementById('decoder-binary-output').innerHTML = '<span style="color: var(--error); font-weight:700;">[ DECODING FAILED ]</span>';
+          document.getElementById('decoder-text-output').innerHTML = '<span style="color: var(--error); font-weight:700;">[ RETRIEVAL TERMINATED ]</span>';
+          return;
+        }
+      }
+
+      // Update globally tracked statistics metrics
+      document.getElementById('global-nucleotide-count').innerHTML = `${decodedResult.cleanedDna.length}<span class="metric-unit">nt</span>`;
+
+      // 1. Display reconstructed binary matrix
+      const binaryOutput = document.getElementById('decoder-binary-output');
+      binaryOutput.innerHTML = '';
+      
+      const binaryBitsBlock = document.createElement('div');
+      binaryBitsBlock.className = 'binary-blocks-container';
+      
+      const binaryStr = decodedResult.binary;
+      // Show grouping in bytes (8 bits)
+      for (let i = 0; i < binaryStr.length; i += 8) {
+        const byteBits = binaryStr.substr(i, 8);
+        const charVal = byteBits.length === 8 ? String.fromCharCode(parseInt(byteBits, 2)) : '?';
+        
+        const block = document.createElement('div');
+        block.className = 'binary-char-block';
+        
+        let label = charVal;
+        if (charVal === ' ') label = 'SPC';
+        if (charVal === '\n') label = 'CRLF';
+        if (byteBits.length < 8) label = 'INC'; // Incomplete byte
+        
+        block.innerHTML = `
+          <span class="binary-char-label">${label}</span>
+          <span class="binary-bits">${byteBits}</span>
+        `;
+        binaryBitsBlock.appendChild(block);
+      }
+      binaryOutput.appendChild(binaryBitsBlock);
+
+      // 2. Display text outputs with typewriter delay simulation
+      const textOutput = document.getElementById('decoder-text-output');
+      textOutput.innerHTML = '';
+      textOutput.classList.add('cursor-active');
+
+      const textVal = decodedResult.text;
+      let textCursor = 0;
+      const typeSpeed = Math.max(10, 300 / textVal.length); // limit maximum typewriter delays
+
+      function typeText() {
+        if (textCursor < textVal.length) {
+          // Preserve linebreaks properly
+          if (textVal[textCursor] === '\n') {
+            textOutput.appendChild(document.createElement('br'));
+          } else {
+            textOutput.appendChild(document.createTextNode(textVal[textCursor]));
+          }
+          textCursor++;
+          typewriterTimeout = setTimeout(typeText, typeSpeed);
+        } else {
+          // Finished rendering
+          textOutput.classList.remove('cursor-active');
+          if (decodedResult.warningOnly) {
+            showToast('Decoded text retrieved with warnings!', 'warning');
+          } else {
+            showToast('DNA sequence successfully decoded!', 'success');
+          }
+        }
+      }
+
+      typeText();
+    }
+
+    // ----------------------------------------------------
+    // TAB 3: PIPELINE SIMULATOR ENGINE
+    // ----------------------------------------------------
+    let simTimer = null;
+    let simSpeedMultiplier = 1.0;
+    const simInput = document.getElementById('sim-input-text');
+    const simConsole = document.getElementById('sim-console-lines');
+    const btnSimStart = document.getElementById('btn-sim-start');
+    const btnSimReset = document.getElementById('btn-sim-reset');
+
+    function updateSimSpeed(val) {
+      simSpeedMultiplier = parseFloat(val);
+      document.getElementById('sim-speed-val').textContent = `${simSpeedMultiplier.toFixed(2)}x`;
+    }
+
+    function addConsoleLine(text, type = 'info') {
+      const line = document.createElement('div');
+      line.className = `console-line ${type}`;
+      
+      const now = new Date();
+      const timeStr = `[${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}.${(now.getMilliseconds()/10).toFixed(0).padStart(2, '0')}]`;
+      
+      line.innerHTML = `
+        <span class="console-line-time">${timeStr}</span>
+        <span>${text}</span>
+      `;
+      simConsole.appendChild(line);
+      
+      // Auto scroll console
+      simConsole.scrollTop = simConsole.scrollHeight;
+    }
+
+    function resetPipelineSimulation() {
+      // Clear timers
+      if (simTimer) clearTimeout(simTimer);
+      
+      // Reset UI structures
+      document.querySelectorAll('.pipeline-step').forEach(step => {
+        step.className = 'pipeline-step';
+      });
+      document.querySelectorAll('.pipeline-connector').forEach(conn => {
+        conn.className = 'pipeline-connector';
+      });
+      
+      document.getElementById('step-1-preview').textContent = 'Empty';
+      document.getElementById('step-2-preview').textContent = 'Empty';
+      document.getElementById('step-3-preview').textContent = 'Empty';
+      if (document.getElementById('step-4-text')) {
+        document.getElementById('step-4-text').textContent = 'Helix Empty';
+      }
+      const miniWrap = document.getElementById('mini-canvas-wrap');
+      if (miniWrap) {
+        miniWrap.style.display = 'none';
+      }
+      document.getElementById('step-5-preview').textContent = 'Empty';
+
+      btnSimStart.disabled = false;
+      btnSimReset.disabled = true;
+
+      addConsoleLine('Simulator reset. Ready for next sequence cycle.', 'info');
+    }
+
+    function startPipelineSimulation() {
+      const text = simInput.value;
+      if (!text.trim()) {
+        showToast('Please specify a text payload to run simulation.', 'error');
+        return;
+      }
+
+      // Prepare UI states
+      resetPipelineSimulation();
+      btnSimStart.disabled = true;
+      btnSimReset.disabled = false;
+
+      addConsoleLine(`Beginning storage cycle. Ingesting: "${text.substring(0, 30)}${text.length > 30 ? '...' : ''}"`, 'cmd');
+
+      const stepDelay = (stepIndex) => {
+        // Base delay per step (1800ms) adapted by simulation speed
+        return (1800 / simSpeedMultiplier);
+      };
+
+      // Step 1: Input Data
+      document.getElementById('step-1').classList.add('active');
+      document.getElementById('step-1-preview').textContent = text.length > 15 ? text.substring(0, 12) + '...' : text;
+      addConsoleLine('STAGE 1: Text loaded. Reading UTF-8 character metrics.', 'info');
+
+      // Transit to Step 2
+      simTimer = setTimeout(() => {
+        document.getElementById('step-1').classList.replace('active', 'completed');
+        document.getElementById('connector-1').classList.add('active');
+        document.getElementById('step-2').classList.add('active');
+        
+        const binary = textToBinaryString(text);
+        document.getElementById('step-2-preview').textContent = binary.substring(0, 16) + '...';
+        addConsoleLine(`STAGE 2: Binary matrix created. Encoded ${binary.length} total bits.`, 'info');
+
+        // Transit to Step 3
+        simTimer = setTimeout(() => {
+          document.getElementById('step-2').classList.replace('active', 'completed');
+          document.getElementById('connector-2').classList.add('active');
+          document.getElementById('step-3').classList.add('active');
+          
+          const { dna } = encodeTextToDna(text);
+          globalDnaSequence = dna; // Push sequence into Helix Visualizer dynamically
+          document.getElementById('step-3-preview').textContent = dna.substring(0, 12) + '...';
+          addConsoleLine(`STAGE 3: Synthesizer loaded. DNA bases generated: "${dna.substring(0, 12)}..."`, 'info');
+
+          // Transit to Step 4
+          simTimer = setTimeout(() => {
+            document.getElementById('step-3').classList.replace('active', 'completed');
+            document.getElementById('connector-3').classList.add('active');
+            document.getElementById('step-4').classList.add('active');
+            
+            const step4Text = document.getElementById('step-4-text');
+            if (step4Text) {
+              step4Text.textContent = `${dna.length} bp strand`;
+            }
+            const miniWrap = document.getElementById('mini-canvas-wrap');
+            if (miniWrap) {
+              miniWrap.style.display = 'block';
+              resizeMiniCanvas();
+            }
+            addConsoleLine(`STAGE 4: Storing synthesized DNA strand in fluid storage vial. Loading visualizer model.`, 'info');
+            
+            // Speed up global helix visualizer spinning to show storage cycle
+            helixParams.speed = 4.0;
+            document.getElementById('vis-speed').value = 4.0;
+            document.getElementById('vis-val-speed').textContent = '4.0 rad/s';
+
+            // Transit to Step 5
+            simTimer = setTimeout(() => {
+              document.getElementById('step-4').classList.replace('active', 'completed');
+              document.getElementById('connector-4').classList.add('active');
+              document.getElementById('step-5').classList.add('active');
+              
+              // Slow down rotation speed back to standard range
+              helixParams.speed = 1.5;
+              document.getElementById('vis-speed').value = 1.5;
+              document.getElementById('vis-val-speed').textContent = '1.5 rad/s';
+
+              const decoded = decodeDnaToText(dna);
+              document.getElementById('step-5-preview').textContent = decoded.text.length > 15 ? decoded.text.substring(0, 12) + '...' : decoded.text;
+              addConsoleLine('STAGE 5: Sequencing DNA strand back. Converting nucleotide sequence bases back to text characters.', 'info');
+
+              simTimer = setTimeout(() => {
+                document.getElementById('step-5').classList.replace('active', 'completed');
+                addConsoleLine(`STORAGE CYCLE COMPLETED SUCCESSFUL. Reconstructed data matches: "${decoded.text}"`, 'success');
+                showToast('E2E Data Simulation Completed!', 'success');
+              }, stepDelay(5));
+
+            }, stepDelay(4));
+
+          }, stepDelay(3));
+
+        }, stepDelay(2));
+
+      }, stepDelay(1));
+    }
+
+    // ----------------------------------------------------
+    // TAB 4: DNA DOUBLE HELIX VISUALIZER ENGINE
+    // ----------------------------------------------------
+    const canvas = document.getElementById('helix-canvas');
+    const ctx = canvas.getContext('2d');
+
+    // Default template DNA sequence when nothing is encoded
+    const defaultDnaTemplate = "TACATCTTTCGATCGATCGGTACATCTTTCGATCGATCGGTACATCTTTCGATCGATCGG";
+    let activeDnaTemplate = defaultDnaTemplate;
+
+    // Responsive sizing logic
+    function resizeCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      // Account for High-DPI screens
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.scale(dpr, dpr);
+    }
+
+    window.addEventListener('resize', () => {
+      if (currentActiveTab === 'visualizer') {
+        resizeCanvas();
+      }
+      const miniWrap = document.getElementById('mini-canvas-wrap');
+      if (miniWrap && miniWrap.style.display !== 'none') {
+        resizeMiniCanvas();
+      }
+    });
+
+    // DNA helix mathematical variables
+    let helixParams = {
+      speed: 1.5,     // rotation speed (rad/s)
+      loops: 2.5,     // frequency, how many waves fit screen
+      nodesize: 8,    // node radius
+      amplitude: 55,  // width of helix
+      spacing: 12     // spacing along length
+    };
+
+    function updateHelixParam(param, val) {
+      helixParams[param] = parseFloat(val);
+      
+      // Update HUD value display labels
+      if (param === 'speed') document.getElementById('vis-val-speed').textContent = `${parseFloat(val).toFixed(1)} rad/s`;
+      if (param === 'loops') document.getElementById('vis-val-loops').textContent = `${parseFloat(val).toFixed(1)} loops`;
+      if (param === 'nodesize') document.getElementById('vis-val-nodesize').textContent = `${parseInt(val)}px`;
+    }
+
+    function updateHelixTemplateSequence(val) {
+      // Clear non-valid bases
+      const cleaned = val.replace(/[^ATCGatcg]/g, '').toUpperCase();
+      if (cleaned.length > 0) {
+        activeDnaTemplate = cleaned;
+      } else {
+        activeDnaTemplate = globalDnaSequence || defaultDnaTemplate;
+      }
+      document.getElementById('vis-sequence-length').textContent = `ACTIVE SEQUENCE: ${activeDnaTemplate.length} base pairs`;
+    }
+
+    function resizeMiniCanvas() {
+      const miniCanvas = document.getElementById('mini-helix-canvas');
+      if (!miniCanvas) return;
+      const rect = miniCanvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      miniCanvas.width = rect.width * dpr;
+      miniCanvas.height = rect.height * dpr;
+      const miniCtx = miniCanvas.getContext('2d');
+      miniCtx.scale(dpr, dpr);
+    }
+
+    function renderMiniHelix(angleOffset) {
+      const miniCanvas = document.getElementById('mini-helix-canvas');
+      if (!miniCanvas) return;
+      const miniCtx = miniCanvas.getContext('2d');
+      const dpr = window.devicePixelRatio || 1;
+      const width = miniCanvas.width / dpr;
+      const height = miniCanvas.height / dpr;
+      
+      miniCtx.clearRect(0, 0, width, height);
+      if (width === 0 || height === 0) return;
+      
+      const centerY = height / 2;
+      const amplitude = 9; // smaller amplitude for step card
+      const loops = 2.0;
+      const nodeSize = 3;
+      const paddingX = 12;
+      const drawWidth = width - (paddingX * 2);
+      
+      const stepCount = 25;
+      let drawItems = [];
+      
+      for (let i = 0; i < stepCount; i++) {
+        const t = i / (stepCount - 1);
+        const x = paddingX + t * drawWidth;
+        
+        const baseIndex = i % activeDnaTemplate.length;
+        const base = activeDnaTemplate[baseIndex];
+        
+        const phase = t * loops * Math.PI * 2 + angleOffset;
+        
+        const y1 = centerY + Math.sin(phase) * amplitude;
+        const z1 = Math.cos(phase) * amplitude;
+        
+        const y2 = centerY + Math.sin(phase + Math.PI) * amplitude;
+        const z2 = Math.cos(phase + Math.PI) * amplitude;
+        
+        const depth1 = (z1 + amplitude) / (amplitude * 2);
+        const depth2 = (z2 + amplitude) / (amplitude * 2);
+        
+        const r1 = nodeSize * (0.6 + depth1 * 0.5);
+        const r2 = nodeSize * (0.6 + depth2 * 0.5);
+        
+        // Rung
+        drawItems.push({
+          z: (z1 + z2) / 2,
+          type: 'rung',
+          x: x,
+          y1: y1,
+          y2: y2,
+          base1: base,
+          base2: getComplementaryBase(base)
+        });
+        
+        // Node 1
+        drawItems.push({
+          z: z1,
+          type: 'node',
+          x: x,
+          y: y1,
+          r: r1,
+          base: base
+        });
+        
+        // Node 2
+        drawItems.push({
+          z: z2,
+          type: 'node',
+          x: x,
+          y: y2,
+          r: r2,
+          base: getComplementaryBase(base)
+        });
+        
+        // Backbone segments
+        if (i < stepCount - 1) {
+          const nextT = (i + 1) / (stepCount - 1);
+          const nextX = paddingX + nextT * drawWidth;
+          const nextPhase = nextT * loops * Math.PI * 2 + angleOffset;
+          
+          const nextY1 = centerY + Math.sin(nextPhase) * amplitude;
+          const nextZ1 = Math.cos(nextPhase) * amplitude;
+          
+          const nextY2 = centerY + Math.sin(nextPhase + Math.PI) * amplitude;
+          const nextZ2 = Math.cos(nextPhase + Math.PI) * amplitude;
+          
+          drawItems.push({
+            z: (z1 + nextZ1) / 2,
+            type: 'backbone',
+            x1: x,
+            y1: y1,
+            x2: nextX,
+            y2: nextY1,
+            strand: 1
+          });
+          
+          drawItems.push({
+            z: (z2 + nextZ2) / 2,
+            type: 'backbone',
+            x1: x,
+            y1: y2,
+            x2: nextX,
+            y2: nextY2,
+            strand: 2
+          });
+        }
+      }
+      
+      drawItems.sort((a, b) => a.z - b.z);
+      
+      drawItems.forEach(item => {
+        if (item.type === 'rung') {
+          miniCtx.beginPath();
+          miniCtx.moveTo(item.x, item.y1);
+          miniCtx.lineTo(item.x, item.y2);
+          const grad = miniCtx.createLinearGradient(item.x, item.y1, item.x, item.y2);
+          grad.addColorStop(0, getBaseColor(item.base1));
+          grad.addColorStop(0.5, 'rgba(148, 163, 184, 0.2)');
+          grad.addColorStop(1, getBaseColor(item.base2));
+          miniCtx.strokeStyle = grad;
+          miniCtx.lineWidth = 1 + (item.z + amplitude) / (amplitude * 2);
+          miniCtx.stroke();
+        } else if (item.type === 'backbone') {
+          miniCtx.beginPath();
+          miniCtx.moveTo(item.x1, item.y1);
+          miniCtx.lineTo(item.x2, item.y2);
+          miniCtx.strokeStyle = item.strand === 1 ? 'rgba(37, 99, 235, 0.6)' : 'rgba(6, 182, 212, 0.6)';
+          miniCtx.lineWidth = 1.2 + (item.z + amplitude) / (amplitude * 2);
+          miniCtx.stroke();
+        } else if (item.type === 'node') {
+          miniCtx.beginPath();
+          miniCtx.arc(item.x, item.y, item.r, 0, Math.PI * 2);
+          miniCtx.fillStyle = getBaseColor(item.base);
+          miniCtx.fill();
+        }
+      });
+    }
+
+    // 3D Helix Projection and Rendering Core Loop
+    let angleOffset = 0;
+    let lastTime = 0;
+
+    function renderHelixAnimation(timestamp) {
+      if (!lastTime) lastTime = timestamp;
+      const deltaTime = (timestamp - lastTime) / 1000;
+      lastTime = timestamp;
+
+      // Adjust rotation speed angle multiplier
+      angleOffset += helixParams.speed * deltaTime;
+
+      // Clean canvas
+      const width = canvas.width / (window.devicePixelRatio || 1);
+      const height = canvas.height / (window.devicePixelRatio || 1);
+      
+      ctx.clearRect(0, 0, width, height);
+
+      if (width === 0 || height === 0) {
+        // Fallback safety if canvas has zero size during tabs setup
+        requestAnimationFrame(renderHelixAnimation);
+        return;
+      }
+
+      // Render mini helix if visible
+      const miniWrap = document.getElementById('mini-canvas-wrap');
+      if (miniWrap && miniWrap.style.display !== 'none') {
+        renderMiniHelix(angleOffset);
+      }
+
+      // Check if global sequence has changed, and reload if override input is empty
+      const overrideInputVal = document.getElementById('helix-text-override').value;
+      if (!overrideInputVal) {
+        activeDnaTemplate = globalDnaSequence || defaultDnaTemplate;
+        document.getElementById('vis-sequence-length').textContent = `ACTIVE SEQUENCE: ${activeDnaTemplate.length} base pairs`;
+      }
+
+      // Render vertical or horizontal? Let's render horizontal along X-axis
+      const paddingX = 40;
+      const drawWidth = width - (paddingX * 2);
+      const centerY = height / 2;
+
+      // Generate nodes coordinates & depth values for sorting
+      const stepCount = 50; // Nodes along the spine
+      let drawItems = [];
+
+      for (let i = 0; i < stepCount; i++) {
+        // Position percentage along X-axis
+        const t = i / (stepCount - 1);
+        const x = paddingX + t * drawWidth;
+
+        // Sequence lookup base indexing
+        const baseIndex = i % activeDnaTemplate.length;
+        const base = activeDnaTemplate[baseIndex];
+
+        // Wave phase logic
+        const phase = t * helixParams.loops * Math.PI * 2 + angleOffset;
+
+        // Complementary mapping variables
+        let strand1Base = base;
+        let strand2Base = getComplementaryBase(base);
+
+        // Strand 1 Position (Y, Z)
+        const y1 = centerY + Math.sin(phase) * helixParams.amplitude;
+        const z1 = Math.cos(phase) * helixParams.amplitude;
+
+        // Strand 2 Position (Y, Z) is 180 degrees shifted
+        const y2 = centerY + Math.sin(phase + Math.PI) * helixParams.amplitude;
+        const z2 = Math.cos(phase + Math.PI) * helixParams.amplitude;
+
+        // Depth projection sizing multiplier
+        const depth1 = (z1 + helixParams.amplitude) / (helixParams.amplitude * 2); // 0 (back) to 1 (front)
+        const depth2 = (z2 + helixParams.amplitude) / (helixParams.amplitude * 2);
+
+        // Radius sizes
+        const r1 = helixParams.nodesize * (0.6 + depth1 * 0.5);
+        const r2 = helixParams.nodesize * (0.6 + depth2 * 0.5);
+
+        // Push separate items to list for painter's algorithm sorting
+        // We push the rung connection
+        drawItems.push({
+          z: (z1 + z2) / 2,
+          type: 'rung',
+          x: x,
+          y1: y1,
+          y2: y2,
+          z1: z1,
+          z2: z2,
+          base1: strand1Base,
+          base2: strand2Base
+        });
+
+        // We push the nodes
+        drawItems.push({
+          z: z1,
+          type: 'node',
+          x: x,
+          y: y1,
+          r: r1,
+          base: strand1Base,
+          depth: depth1
+        });
+
+        drawItems.push({
+          z: z2,
+          type: 'node',
+          x: x,
+          y: y2,
+          r: r2,
+          base: strand2Base,
+          depth: depth2
+        });
+
+        // Generate backbone segments connecting to the next node
+        if (i < stepCount - 1) {
+          const nextT = (i + 1) / (stepCount - 1);
+          const nextX = paddingX + nextT * drawWidth;
+          const nextPhase = nextT * helixParams.loops * Math.PI * 2 + angleOffset;
+          
+          const nextY1 = centerY + Math.sin(nextPhase) * helixParams.amplitude;
+          const nextZ1 = Math.cos(nextPhase) * helixParams.amplitude;
+          
+          const nextY2 = centerY + Math.sin(nextPhase + Math.PI) * helixParams.amplitude;
+          const nextZ2 = Math.cos(nextPhase + Math.PI) * helixParams.amplitude;
+          
+          // Strand 1 segment
+          drawItems.push({
+            z: (z1 + nextZ1) / 2,
+            type: 'backbone',
+            x1: x,
+            y1: y1,
+            x2: nextX,
+            y2: nextY1,
+            strand: 1
+          });
+          
+          // Strand 2 segment
+          drawItems.push({
+            z: (z2 + nextZ2) / 2,
+            type: 'backbone',
+            x1: x,
+            y1: y2,
+            x2: nextX,
+            y2: nextY2,
+            strand: 2
+          });
+        }
+      }
+
+      // Sort drawing items by their Z coordinate (depth) in ascending order.
+      // Objects with lower Z (further away/behind) will be drawn first,
+      // and objects with higher Z (closer to front) will overlay them.
+      drawItems.sort((a, b) => a.z - b.z);
+
+      // Render the sorted items (Painter's Algorithm)
+      drawItems.forEach(item => {
+        if (item.type === 'rung') {
+          // Draw rungs connecting strands
+          ctx.beginPath();
+          ctx.moveTo(item.x, item.y1);
+          ctx.lineTo(item.x, item.y2);
+          
+          // Create custom colors gradient bridging nucleotide bases A-T / C-G
+          const grad = ctx.createLinearGradient(item.x, item.y1, item.x, item.y2);
+          grad.addColorStop(0, getBaseColor(item.base1));
+          grad.addColorStop(0.5, 'rgba(148, 163, 184, 0.4)'); // gray center bridge
+          grad.addColorStop(1, getBaseColor(item.base2));
+          
+          ctx.strokeStyle = grad;
+          // Rungs in foreground are drawn slightly thicker
+          ctx.lineWidth = 1.5 + (item.z + helixParams.amplitude) / (helixParams.amplitude / 2);
+          ctx.stroke();
+        } else if (item.type === 'backbone') {
+          // Draw backbone segments connecting adjacent nodes
+          ctx.beginPath();
+          ctx.moveTo(item.x1, item.y1);
+          ctx.lineTo(item.x2, item.y2);
+          
+          // Color strands differently: strand 1 is primary blue, strand 2 is cyan/teal
+          ctx.strokeStyle = item.strand === 1 ? 'rgba(37, 99, 235, 0.75)' : 'rgba(6, 182, 212, 0.75)';
+          
+          // Backbone thickness depends on depth
+          ctx.lineWidth = 2.5 + (item.z + helixParams.amplitude) / (helixParams.amplitude / 2);
+          ctx.stroke();
+        } else if (item.type === 'node') {
+          // Draw nucleotide node sphere
+          ctx.beginPath();
+          ctx.arc(item.x, item.y, item.r, 0, Math.PI * 2);
+          ctx.fillStyle = getBaseColor(item.base);
+          ctx.shadowColor = getBaseColor(item.base);
+          ctx.shadowBlur = item.depth * 8; // glow effect for foreground bases
+          ctx.fill();
+          ctx.shadowBlur = 0; // reset shadow glow
+          
+          // Draw base letter on the node if size permits
+          if (item.r > 7) {
+            ctx.font = `bold ${Math.round(item.r * 0.9)}px JetBrains Mono`;
+            ctx.fillStyle = "#ffffff";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(item.base, item.x, item.y);
+          }
+        }
+      });
+
+      requestAnimationFrame(renderHelixAnimation);
+    }
+
+    // Helper: Map bases to their scientific matches
+    function getComplementaryBase(base) {
+      if (base === 'A') return 'T';
+      if (base === 'T') return 'A';
+      if (base === 'C') return 'G';
+      if (base === 'G') return 'C';
+      return 'A'; // fallback
+    }
+
+    // Helper: Retrieve theme CSS variable matching colors
+    function getBaseColor(base) {
+      if (base === 'A') return '#2563eb'; // blue
+      if (base === 'T') return '#06b6d4'; // cyan
+      if (base === 'C') return '#4f46e5'; // indigo
+      if (base === 'G') return '#0d9488'; // teal
+      return '#94a3b8'; // gray fallback
+    }
+
+    // BACKEND DATABASE CLIENT IMPLEMENTATION (NEW)
+    async function checkBackendConnection() {
+      try {
+        const response = await fetch(`${API_BASE}/api/vials`, { signal: AbortSignal.timeout(2000) });
+        if (response.ok) {
+          isBackendConnected = true;
+          document.getElementById('system-status-text').textContent = "NODE // ONLINE (DB CONNECTED)";
+          updateDbIndicators(true);
+          refreshVialList();
+        } else {
+          throw new Error("Server error");
+        }
+      } catch (e) {
+        isBackendConnected = false;
+        document.getElementById('system-status-text').textContent = "NODE // ONLINE (STANDALONE)";
+        updateDbIndicators(false);
+        console.log("Database connection unavailable, running in offline standalone mode.");
+      }
+    }
+
+    function updateDbIndicators(connected) {
+      const color = connected ? "var(--success)" : "var(--text-muted)";
+      const saveDot = document.getElementById('db-status-dot');
+      const loadDot = document.getElementById('db-load-status-dot');
+      if (saveDot) {
+        saveDot.style.backgroundColor = color;
+        saveDot.style.boxShadow = `0 0 4px ${color}`;
+      }
+      if (loadDot) {
+        loadDot.style.backgroundColor = color;
+        loadDot.style.boxShadow = `0 0 4px ${color}`;
+      }
+    }
+
+    async function saveVialToDb() {
+      const labelInput = document.getElementById('vial-label-input');
+      const label = labelInput.value.trim();
+      if (!label) {
+        showToast("Please enter a custom vial label name.", "error");
+        return;
+      }
+      
+      if (!globalDnaSequence) {
+        showToast("No DNA sequence has been synthesized yet.", "error");
+        return;
+      }
+
+      const originalText = document.getElementById('encoder-input').value;
+
+      try {
+        const response = await fetch(`${API_BASE}/api/vials`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            label: label,
+            sequence: globalDnaSequence,
+            original_text: originalText
+          })
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+          showToast(`Vial '${label}' stored in inventory!`, "success");
+          labelInput.value = "";
+          refreshVialList();
+        } else {
+          showToast(data.detail || "Failed to store vial.", "error");
+        }
+      } catch (e) {
+        showToast("Connection to backend lost.", "error");
+      }
+    }
+
+    async function loadVialFromDb(label) {
+      if (!label) return;
+      
+      try {
+        const response = await fetch(`${API_BASE}/api/vials/${label}`);
+        const data = await response.json();
+        
+        if (response.ok) {
+          document.getElementById('decoder-input').value = data.sequence;
+          showToast(`Vial '${label}' sequence loaded.`, "success");
+          
+          // Automatically trigger decoder
+          runDecoder();
+        } else {
+          showToast(data.detail || "Failed to load vial.", "error");
+        }
+      } catch (e) {
+        showToast("Failed to fetch vial from server.", "error");
+      }
+    }
+
+    async function refreshVialList() {
+      if (!isBackendConnected) return;
+
+      try {
+        const response = await fetch(`${API_BASE}/api/vials`);
+        if (!response.ok) return;
+        const vials = await response.json();
+
+        // Update dropdown
+        const select = document.getElementById('vial-select');
+        if (select) {
+          select.innerHTML = '<option value="">-- Select Stored Vial --</option>';
+          vials.forEach(vial => {
+            const opt = document.createElement('option');
+            opt.value = vial.label;
+            opt.textContent = `${vial.label} (${vial.length} bp)`;
+            select.appendChild(opt);
+          });
+        }
+
+        // Update inventory table
+        const tbody = document.getElementById('inventory-table-body');
+        if (tbody) {
+          if (vials.length === 0) {
+            tbody.innerHTML = `
+              <tr>
+                <td colspan="6" style="padding: 16px 12px; text-align: center; color: var(--text-muted);">No vials stored in virtual database inventory.</td>
+              </tr>
+            `;
+          } else {
+            tbody.innerHTML = "";
+            vials.forEach(vial => {
+              const row = document.createElement('tr');
+              row.style.borderBottom = "1px solid var(--border-lab)";
+              row.style.color = "var(--text-secondary)";
+              
+              let peek = vial.original_text || "";
+              if (peek.length > 25) peek = peek.substring(0, 22) + "...";
+              if (!peek) peek = "<no text payload>";
+
+              const date = new Date(vial.created_at);
+              const formattedDate = date.toLocaleString();
+
+              row.innerHTML = `
+                <td style="padding: 8px 12px;">${vial.id}</td>
+                <td style="padding: 8px 12px; font-weight: 700; color: var(--primary);">${vial.label}</td>
+                <td style="padding: 8px 12px;">${vial.length} nt</td>
+                <td style="padding: 8px 12px; font-style: italic;">"${peek}"</td>
+                <td style="padding: 8px 12px; font-size: 0.75rem;">${formattedDate}</td>
+                <td style="padding: 8px 12px; text-align: right;">
+                  <button class="lab-btn danger" onclick="deleteVial(${vial.id})" style="padding: 4px 8px; font-size: 0.7rem; margin-top: 0; line-height: 1;">
+                    DELETE
+                  </button>
+                </td>
+              `;
+              tbody.appendChild(row);
+            });
+          }
+        }
+      } catch (e) {
+        console.error("Error refreshing vial list:", e);
+      }
+    }
+
+    async function deleteVial(id) {
+      if (!confirm("Are you sure you want to delete this vial from virtual storage?")) return;
+
+      try {
+        const response = await fetch(`${API_BASE}/api/vials/${id}`, {
+          method: 'DELETE'
+        });
+        
+        if (response.ok) {
+          showToast("Vial deleted from database.", "success");
+          refreshVialList();
+          
+          document.getElementById('decoder-input').value = "";
+          document.getElementById('vial-select').value = "";
+        } else {
+          const data = await response.json();
+          showToast(data.detail || "Failed to delete vial.", "error");
+        }
+      } catch (e) {
+        showToast("Connection error during delete.", "error");
+      }
+    }
+
+    // START RENDERING ENGINES ON LOAD
+    window.addEventListener('load', () => {
+      // 1. Establish initial canvas sizes
+      resizeCanvas();
+      // 2. Initialize Canvas Render frame updates
+      requestAnimationFrame(renderHelixAnimation);
+      // 3. Connect to virtual lab backend
+      checkBackendConnection();
+    });
+  </script>
+</body>
+</html>

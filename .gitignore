@@ -1,0 +1,21 @@
+# Databases
+*.db
+*.db-journal
+
+# Python Cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual Environments
+.venv/
+venv/
+env/
+ENV/
+
+# Node/IDE configurations
+node_modules/
+.idea/
+.vscode/
+.DS_Store
